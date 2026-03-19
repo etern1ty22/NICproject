@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nic-vrptw"
+version = "0.1.0"
+description = "VRPTW parsing and reproducible experiment scaffolding for NIC project work."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "numpy>=1.26",
+  "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+ortec = [
+  "vrplib>=1.4",
+]
+analysis = [
+  "pandas>=2.2",
+  "matplotlib>=3.8",
+]
+dev = [
+  "pytest>=8.0",
+  "vrplib>=1.4",
+  "pandas>=2.2",
+  "matplotlib>=3.8",
+]
+
+[project.scripts]
+nic-vrptw = "nic_vrptw.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
