@@ -55,7 +55,7 @@ Official benchmark sources wired into the manifest:
 - Homberger 200-customer benchmark from SINTEF TOP.
 - ORTEC VRPTW instance from the EURO Meets NeurIPS 2022 quickstart repository.
 
-Integration notes for teammates:
+Integration notes:
 - New solvers should register through `src/nic_vrptw/solvers/__init__.py`.
 - New evaluators should register through `src/nic_vrptw/experiments/evaluators.py`.
 - The current `reference_solver` and `default_evaluator` exist only to keep the pipeline runnable until the team modules are plugged in.
