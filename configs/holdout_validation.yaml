@@ -1,0 +1,18 @@
+name: holdout_validation
+output_dir: output/holdout_validation
+objective_mode: hierarchical
+seed_set:
+  - 13
+evaluator:
+  name: default_evaluator
+solver:
+  name: reference_solver
+  params:
+    distance_weight: 1.0
+    wait_weight: 0.2
+    slack_weight: 0.05
+datasets:
+  - id: ortec_mini
+    path: data/fixtures/ortec/ORTEC-mini.vrp
+    format: vrplib
+    role: holdout

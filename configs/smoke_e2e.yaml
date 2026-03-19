@@ -1,0 +1,22 @@
+name: smoke_e2e
+output_dir: output/smoke
+objective_mode: hierarchical
+seed_set:
+  - 5
+evaluator:
+  name: default_evaluator
+solver:
+  name: reference_solver
+  params:
+    distance_weight: 1.0
+    wait_weight: 0.2
+    slack_weight: 0.05
+datasets:
+  - id: solomon_c101_mini
+    path: data/fixtures/solomon/C101-mini.txt
+    format: solomon
+    role: tuning
+  - id: ortec_mini
+    path: data/fixtures/ortec/ORTEC-mini.vrp
+    format: vrplib
+    role: holdout
