@@ -1,0 +1,21 @@
+name: controlled_sweep
+output_dir: output/controlled_sweep
+objective_mode: hierarchical
+seed_set:
+  - 7
+  - 11
+solver:
+  name: nearest_feasible
+  params:
+    distance_weight: 1.0
+    wait_weight: 0.2
+    slack_weight: 0.05
+datasets:
+  - id: solomon_c101_mini
+    path: data/fixtures/solomon/C101-mini.txt
+    format: solomon
+    role: tuning
+sweeps:
+  distance_weight: [0.8, 1.0, 1.2]
+  wait_weight: [0.1, 0.2]
+  slack_weight: [0.01, 0.05]
