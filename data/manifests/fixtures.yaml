@@ -1,9 +1,9 @@
 datasets:
   solomon_c101_mini:
-    url: file:///home/mikhail/projects/NIC/data/fixtures/solomon/C101-mini.txt
+    path: ../fixtures/solomon/C101-mini.txt
     filename: C101-mini.txt
     sha256: 45e7d4d90642b840d9caea392fd7420b85b35f8b1b15cc1d88e0a650b58fbae7
   ortec_mini:
-    url: file:///home/mikhail/projects/NIC/data/fixtures/ortec/ORTEC-mini.vrp
+    path: ../fixtures/ortec/ORTEC-mini.vrp
     filename: ORTEC-mini.vrp
     sha256: faf7a7db8c82fafe54a2eb759cab27ef64ca7a44c976656b27f48d052e396ab7

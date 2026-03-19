@@ -28,9 +28,11 @@ class RunnerTests(unittest.TestCase):
             self.assertEqual(len(rows), 2)
             self.assertIn("dataset", rows[0])
             self.assertIn("official_cost", rows[0])
+            self.assertIn("evaluator_id", rows[0])
 
             metadata = json.loads(json_files[0].read_text(encoding="utf-8"))
             self.assertEqual(metadata["records_count"], 2)
+            self.assertEqual(metadata["evaluator_id"], "default_evaluator")
 
 
 if __name__ == "__main__":

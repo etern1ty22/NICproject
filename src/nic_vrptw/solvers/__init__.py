@@ -2,12 +2,14 @@ from __future__ import annotations
 
 from nic_vrptw.core.contracts import SolverProtocol
 
-from .baseline import NearestFeasibleSolver
+from .reference import ReferenceSolver
 
 _SOLVERS: dict[str, SolverProtocol] = {}
 
 
 def register_solver(solver: SolverProtocol) -> None:
+    # ACO solver can be wired in by importing it once and registering it
+    # here or in a small plugin module. The runner resolves solvers only by id.
     _SOLVERS[solver.solver_id] = solver
 
 
@@ -26,4 +28,4 @@ def list_solvers() -> tuple[str, ...]:
     return tuple(sorted(_SOLVERS))
 
 
-register_solver(NearestFeasibleSolver())
+register_solver(ReferenceSolver())

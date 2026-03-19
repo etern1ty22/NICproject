@@ -1,0 +1,15 @@
+datasets:
+  solomon_c101_official:
+    url: https://www.sintef.no/globalassets/project/top/vrptw/solomon/solomon-100.zip
+    archive_member: In/c101.txt
+    filename: c101.txt
+    sha256: 8a0a72cbe6b7f8f9988ace4ebde0378ec34943acaaac47f2c408915e41887747
+  homberger_rc2_2_1_official:
+    url: https://www.sintef.no/globalassets/project/top/vrptw/homberger/200/homberger_200_customer_instances.zip
+    archive_member: RC2_2_1.TXT
+    filename: RC2_2_1.TXT
+    sha256: 79092cc627135f370a6381b0c64afc8403e4d4ff74afa8808d28d208ac784571
+  ortec_asym_n458_official:
+    url: https://raw.githubusercontent.com/ortec/euro-neurips-vrp-2022-quickstart/main/instances/ORTEC-VRPTW-ASYM-0bdff870-d1-n458-k35.txt
+    filename: ORTEC-VRPTW-ASYM-0bdff870-d1-n458-k35.txt
+    sha256: a8877d16bd62287527c16e520a7f34326d5fadc0439286f28fa557c218419a6b

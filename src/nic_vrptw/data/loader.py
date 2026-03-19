@@ -10,6 +10,8 @@ from .vrplib_parser import parse_vrplib_instance
 
 
 def load_instance(path: str | Path, format: str | None = None) -> VRPTWInstance:
+    # Keep format dispatch centralized here so new dataset adapters can be added
+    # without touching experiment code or solver code.
     instance_path = Path(path)
     detected_format = (format or _detect_format(instance_path)).lower()
     if detected_format in {"solomon", "homberger"}:

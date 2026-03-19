@@ -8,6 +8,8 @@ def evaluate_solution(
     solution: RouteSolution,
     objective_mode: str,
 ) -> ScoreRecord:
+    # This is a temporary scoring shim. Fuller evaluator
+    # can replace it later as long as it still returns ScoreRecord.
     customer_map = instance.customer_map()
     depot = customer_map[instance.depot_id]
     seen_counts: dict[int, int] = {customer_id: 0 for customer_id in instance.non_depot_ids}
@@ -61,6 +63,8 @@ def evaluate_solution(
         violations.append("solution uses more vehicles than allowed")
 
     objective_mode = objective_mode.lower()
+    # The project objective remains hierarchical, while `official_cost` can stay
+    # dataset-native for recent hold-out validation.
     if objective_mode == "hierarchical":
         objective_value = (float(vehicles_used), float(total_distance))
     elif objective_mode == "distance_only":

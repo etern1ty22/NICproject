@@ -38,6 +38,7 @@ class DatasetSpec:
 
 @dataclass(frozen=True)
 class Route:
+    # Stops contain customer ids only. Depot insertion is handled by the evaluator.
     stops: tuple[int, ...]
 
 
@@ -50,6 +51,9 @@ class RouteSolution:
 
 @dataclass(frozen=True)
 class ScoreRecord:
+    # `official_cost` is kept separate from the hierarchical project objective so
+    # recent validation datasets can report their native metric without changing
+    # the rest of the experiment pipeline.
     feasible: bool
     vehicles_used: int
     distance: float
@@ -65,6 +69,7 @@ class RunConfig:
     name: str
     output_dir: Path
     solver_id: str
+    evaluator_id: str
     objective_mode: str
     seed_set: tuple[int, ...]
     datasets: tuple[DatasetSpec, ...]
@@ -83,6 +88,7 @@ class RunRecord:
     role: str
     seed: int
     solver_id: str
+    evaluator_id: str
     feasible: bool
     vehicles_used: int
     distance: float
@@ -102,6 +108,7 @@ class RunRecord:
             "role": self.role,
             "seed": self.seed,
             "solver_id": self.solver_id,
+            "evaluator_id": self.evaluator_id,
             "feasible": self.feasible,
             "vehicles_used": self.vehicles_used,
             "distance": round(self.distance, 6),
@@ -123,6 +130,9 @@ class ValidationReport:
 
 @dataclass(frozen=True)
 class VRPTWInstance:
+    # All dataset adapters must normalize their raw files into this schema.
+    # Downstream solver code should not care whether the source was Solomon,
+    # Homberger, or ORTEC/VRPLIB once this object is constructed.
     name: str
     source_format: str
     vehicle: VehicleSpec

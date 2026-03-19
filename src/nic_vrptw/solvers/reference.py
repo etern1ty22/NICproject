@@ -8,8 +8,8 @@ from nic_vrptw.core.models import Route, RouteSolution, VRPTWInstance
 
 
 @dataclass
-class NearestFeasibleSolver:
-    solver_id: str = "nearest_feasible"
+class ReferenceSolver:
+    solver_id: str = "reference_solver"
 
     def solve(
         self,
@@ -17,6 +17,9 @@ class NearestFeasibleSolver:
         seed: int,
         params: Mapping[str, Any],
     ) -> RouteSolution:
+        # This solver exists only as a reference implementation of the contract
+        # and a smoke-test target for the runner until plugging in the
+        # actual optimization modules.
         rng = random.Random(seed)
         remaining = set(instance.non_depot_ids)
         routes: list[Route] = []
@@ -80,6 +83,8 @@ def _feasible_append(
     current_load: float,
     customer_id: int,
 ) -> dict[str, float] | None:
+    # The helper returns only the scheduling data this reference implementation
+    # needs. Solvers can reuse the idea without matching this helper.
     candidate = instance.customer(customer_id)
     depot = instance.customer(instance.depot_id)
     next_load = current_load + candidate.demand

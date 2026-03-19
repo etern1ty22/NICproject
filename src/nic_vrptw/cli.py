@@ -7,6 +7,7 @@ from pathlib import Path
 from nic_vrptw.data.downloads import download_dataset
 from nic_vrptw.data.loader import load_instance
 from nic_vrptw.data.validation import validate_instance
+from nic_vrptw.experiments import list_evaluators
 from nic_vrptw.experiments.runner import run_experiments
 from nic_vrptw.solvers import list_solvers
 
@@ -18,6 +19,7 @@ def main(argv: list[str] | None = None) -> int:
     run_parser = subparsers.add_parser("run", help="Execute experiments from a YAML config.")
     run_parser.add_argument("--config", required=True)
     run_parser.add_argument("--solver")
+    run_parser.add_argument("--evaluator")
     run_parser.add_argument("--output-dir")
     run_parser.add_argument(
         "--param",
@@ -36,6 +38,7 @@ def main(argv: list[str] | None = None) -> int:
     download_parser.add_argument("--output-dir", required=True)
 
     solvers_parser = subparsers.add_parser("list-solvers", help="List available solver plugins.")
+    evaluators_parser = subparsers.add_parser("list-evaluators", help="List available evaluator plugins.")
 
     args = parser.parse_args(argv)
 
@@ -44,6 +47,7 @@ def main(argv: list[str] | None = None) -> int:
         records = run_experiments(
             config_path=args.config,
             solver_id=args.solver,
+            evaluator_id=args.evaluator,
             output_dir=args.output_dir,
             param_overrides=overrides,
         )
@@ -70,6 +74,10 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "list-solvers":
         print(json.dumps({"solvers": list(list_solvers())}, indent=2))
+        return 0
+
+    if args.command == "list-evaluators":
+        print(json.dumps({"evaluators": list(list_evaluators())}, indent=2))
         return 0
 
     return 1

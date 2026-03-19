@@ -3,8 +3,10 @@ output_dir: output/smoke
 objective_mode: hierarchical
 seed_set:
   - 5
+evaluator:
+  name: default_evaluator
 solver:
-  name: nearest_feasible
+  name: reference_solver
   params:
     distance_weight: 1.0
     wait_weight: 0.2

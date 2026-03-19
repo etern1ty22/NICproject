@@ -15,19 +15,27 @@ from nic_vrptw.core.models import DatasetSpec, RouteSolution, RunConfig, RunReco
 from nic_vrptw.core.utils import make_json_safe, stable_digest
 from nic_vrptw.data.loader import load_instance
 from nic_vrptw.data.validation import validate_instance
+from nic_vrptw.experiments.evaluators import get_evaluator
 from nic_vrptw.solvers import get_solver
-
-from .evaluator import evaluate_solution
 
 
 def run_experiments(
     config_path: str | Path,
     solver_id: str | None = None,
+    evaluator_id: str | None = None,
     output_dir: str | Path | None = None,
     param_overrides: Mapping[str, Any] | None = None,
 ) -> list[RunRecord]:
+    # This is the integration point for the whole team: loader -> solver ->
+    # evaluator -> CSV/JSON artifacts. New solver modules should plug in here
+    # through the registry instead of adding custom experiment entrypoints.
     config_path = Path(config_path)
-    config = _load_run_config(config_path, solver_id=solver_id, output_dir=output_dir)
+    config = _load_run_config(
+        config_path,
+        solver_id=solver_id,
+        evaluator_id=evaluator_id,
+        output_dir=output_dir,
+    )
     resolved_params = dict(config.solver_params)
     if param_overrides:
         resolved_params.update(param_overrides)
@@ -35,6 +43,7 @@ def run_experiments(
         name=config.name,
         output_dir=config.output_dir,
         solver_id=config.solver_id,
+        evaluator_id=config.evaluator_id,
         objective_mode=config.objective_mode,
         seed_set=config.seed_set,
         datasets=config.datasets,
@@ -44,6 +53,7 @@ def run_experiments(
     )
 
     solver = get_solver(config.solver_id)
+    evaluator = get_evaluator(config.evaluator_id)
     config.output_dir.mkdir(parents=True, exist_ok=True)
 
     config_id = stable_digest(make_json_safe(asdict(config)))
@@ -51,6 +61,8 @@ def run_experiments(
     records: list[RunRecord] = []
 
     for dataset in config.datasets:
+        # Validation happens before the expensive part so malformed external
+        # datasets fail fast and do not pollute experiment logs.
         instance = load_instance(dataset.path, format=dataset.format)
         report = validate_instance(instance)
         if not report.valid:
@@ -62,7 +74,7 @@ def run_experiments(
                 start = perf_counter()
                 solution = solver.solve(instance=instance, seed=seed, params=params)
                 _ensure_solution_contract(solution)
-                score = evaluate_solution(instance, solution, config.objective_mode)
+                score = evaluator.evaluate(instance, solution, config.objective_mode)
                 runtime_s = perf_counter() - start
 
                 run_payload = {
@@ -83,6 +95,7 @@ def run_experiments(
                         role=dataset.role,
                         seed=seed,
                         solver_id=config.solver_id,
+                        evaluator_id=config.evaluator_id,
                         feasible=score.feasible,
                         vehicles_used=score.vehicles_used,
                         distance=score.distance,
@@ -101,8 +114,11 @@ def run_experiments(
 def _load_run_config(
     config_path: Path,
     solver_id: str | None = None,
+    evaluator_id: str | None = None,
     output_dir: str | Path | None = None,
 ) -> RunConfig:
+    # Config paths are resolved relative to the repository root so anyone can
+    # move configs around inside `configs/` without changing runtime code.
     payload = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
     datasets = tuple(
         DatasetSpec(
@@ -122,6 +138,7 @@ def _load_run_config(
         name=payload["name"],
         output_dir=(Path(output_dir) if output_dir is not None else (config_path.parent.parent / payload["output_dir"]).resolve()),
         solver_id=solver_id or payload["solver"]["name"],
+        evaluator_id=evaluator_id or payload.get("evaluator", {}).get("name", "default_evaluator"),
         objective_mode=payload.get("objective_mode", "hierarchical"),
         seed_set=tuple(int(seed) for seed in payload.get("seed_set", [0])),
         datasets=datasets,
@@ -150,6 +167,8 @@ def _iter_parameter_sets(
 def _ensure_solution_contract(solution: RouteSolution) -> None:
     if not isinstance(solution, RouteSolution):
         raise ValueError("Solver contract violation: solve() must return RouteSolution.")
+    # Contract checks stay intentionally narrow: free to attach
+    # extra solver metadata as long as the route structure remains stable.
     for route in solution.routes:
         if not all(isinstance(stop, int) for stop in route.stops):
             raise ValueError("Solver contract violation: route stops must be integer customer ids.")
@@ -169,6 +188,7 @@ def _write_outputs(config: RunConfig, config_id: str, records: list[RunRecord]) 
             "role",
             "seed",
             "solver_id",
+            "evaluator_id",
             "feasible",
             "vehicles_used",
             "distance",
@@ -188,6 +208,7 @@ def _write_outputs(config: RunConfig, config_id: str, records: list[RunRecord]) 
         "config_id": config_id,
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "solver_id": config.solver_id,
+        "evaluator_id": config.evaluator_id,
         "objective_mode": config.objective_mode,
         "seed_set": list(config.seed_set),
         "records_count": len(records),
