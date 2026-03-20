@@ -1,0 +1,2 @@
+# Keep dataset fixtures byte-stable across platforms so manifest checksums remain valid.
+data/fixtures/** text eol=lf

@@ -4,8 +4,8 @@ import hashlib
 import io
 from pathlib import Path
 from urllib.error import URLError
-from urllib.parse import urlparse
-from urllib.request import urlopen
+from urllib.parse import ParseResult, urlparse
+from urllib.request import url2pathname, urlopen
 import zipfile
 
 import yaml
@@ -63,9 +63,7 @@ def _read_source_bytes(spec: dict, manifest_path: Path) -> bytes:
     relative_path = spec.get("path")
     if relative_path:
         local_path = (manifest_path.parent / relative_path).resolve()
-        if not local_path.exists():
-            raise DatasetDownloadError(f"Local dataset file does not exist: {local_path}")
-        return local_path.read_bytes()
+        return _read_local_bytes(local_path)
 
     url = spec["url"]
     return _download_bytes(url)
@@ -74,16 +72,47 @@ def _read_source_bytes(spec: dict, manifest_path: Path) -> bytes:
 def _download_bytes(url: str) -> bytes:
     parsed = urlparse(url)
     if parsed.scheme in {"", "file"}:
-        local_path = Path(parsed.path)
-        if not local_path.exists():
-            raise DatasetDownloadError(f"Local dataset file does not exist: {local_path}")
-        return local_path.read_bytes()
+        local_path = _file_url_to_path(url, parsed)
+        return _read_local_bytes(local_path)
 
     try:
         with urlopen(url) as response:
             return response.read()
     except URLError as exc:  # pragma: no cover - depends on external connectivity
         raise DatasetDownloadError(f"Failed to download dataset from {url}: {exc}") from exc
+
+
+def _file_url_to_path(url: str, parsed: ParseResult) -> Path:
+    if parsed.scheme == "":
+        return Path(url)
+
+    if parsed.netloc in {"", "localhost"}:
+        raw_path = parsed.path
+    elif not parsed.path:
+        raw_path = parsed.netloc
+    elif parsed.netloc.endswith(":"):
+        raw_path = f"{parsed.netloc}{parsed.path}"
+    else:
+        raw_path = f"//{parsed.netloc}{parsed.path}"
+
+    path_text = url2pathname(raw_path)
+    if _has_windows_drive_prefix(path_text):
+        path_text = path_text[1:]
+    return Path(path_text)
+
+
+def _has_windows_drive_prefix(path_text: str) -> bool:
+    return len(path_text) >= 3 and path_text[0] == "/" and path_text[1].isalpha() and path_text[2] == ":"
+
+
+def _read_local_bytes(local_path: Path) -> bytes:
+    if not local_path.exists() or not local_path.is_file():
+        raise DatasetDownloadError(f"Local dataset file does not exist or is a directory: {local_path}")
+
+    try:
+        return local_path.read_bytes()
+    except OSError as exc:
+        raise DatasetDownloadError(f"Failed to read local dataset file {local_path}: {exc}") from exc
 
 
 def _extract_archive_member(payload: bytes, archive_member: str) -> bytes:

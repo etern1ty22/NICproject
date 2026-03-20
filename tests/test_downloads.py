@@ -36,6 +36,31 @@ class DownloadTests(unittest.TestCase):
             output_path = download_dataset(manifest_path, "demo", tmp / "downloads")
             self.assertEqual(output_path.read_text(encoding="utf-8"), "fixture-payload")
 
+    def test_download_dataset_supports_file_uri(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp = Path(tmpdir)
+            source_path = tmp / "source.txt"
+            source_path.write_text("fixture-payload", encoding="utf-8")
+            digest = hashlib.sha256(source_path.read_bytes()).hexdigest()
+            manifest_path = tmp / "manifest.yaml"
+            manifest_path.write_text(
+                yaml.safe_dump(
+                    {
+                        "datasets": {
+                            "demo": {
+                                "url": source_path.resolve().as_uri(),
+                                "filename": "downloaded.txt",
+                                "sha256": digest,
+                            }
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            output_path = download_dataset(manifest_path, "demo", tmp / "downloads")
+            self.assertEqual(output_path.read_text(encoding="utf-8"), "fixture-payload")
+
     def test_download_dataset_extracts_archive_member(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp = Path(tmpdir)
@@ -74,7 +99,7 @@ class DownloadTests(unittest.TestCase):
                     {
                         "datasets": {
                             "demo": {
-                                "url": f"file://{source_path}",
+                                "url": source_path.resolve().as_uri(),
                                 "filename": "downloaded.txt",
                                 "sha256": "0" * 64,
                             }
@@ -96,7 +121,7 @@ class DownloadTests(unittest.TestCase):
                     {
                         "datasets": {
                             "demo": {
-                                "url": f"file://{tmp / 'missing.txt'}",
+                                "url": (tmp / "missing.txt").resolve().as_uri(),
                                 "filename": "downloaded.txt",
                                 "sha256": "0" * 64,
                             }
@@ -108,6 +133,29 @@ class DownloadTests(unittest.TestCase):
 
             with self.assertRaises(DatasetDownloadError):
                 download_dataset(manifest_path, "demo", tmp / "downloads")
+
+    def test_download_dataset_fails_on_directory_path(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp = Path(tmpdir)
+            manifest_path = tmp / "manifest.yaml"
+            manifest_path.write_text(
+                yaml.safe_dump(
+                    {
+                        "datasets": {
+                            "demo": {
+                                "path": ".",
+                                "filename": "downloaded.txt",
+                                "sha256": "0" * 64,
+                            }
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            with self.assertRaises(DatasetDownloadError) as exc_info:
+                download_dataset(manifest_path, "demo", tmp / "downloads")
+            self.assertIn("does not exist or is a directory", str(exc_info.exception))
 
 
 if __name__ == "__main__":
