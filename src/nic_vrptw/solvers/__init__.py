@@ -4,6 +4,8 @@ from nic_vrptw.core.contracts import SolverProtocol
 
 from .reference import ReferenceSolver
 
+from .greedy import GreedyVRPTW
+
 _SOLVERS: dict[str, SolverProtocol] = {}
 
 
