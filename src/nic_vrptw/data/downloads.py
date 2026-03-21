@@ -5,7 +5,7 @@ import io
 from pathlib import Path
 from urllib.error import URLError
 from urllib.parse import ParseResult, urlparse
-from urllib.request import url2pathname, urlopen
+from urllib.request import Request, url2pathname, urlopen
 import zipfile
 
 import yaml
@@ -76,7 +76,17 @@ def _download_bytes(url: str) -> bytes:
         return _read_local_bytes(local_path)
 
     try:
-        with urlopen(url) as response:
+        request = Request(
+            url,
+            headers={
+                # Some benchmark hosts reject the default Python urllib user-agent
+                # with 403, while the same URL works in browsers and curl.
+                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"
+                " (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+                "Accept": "*/*",
+            },
+        )
+        with urlopen(request) as response:
             return response.read()
     except URLError as exc:  # pragma: no cover - depends on external connectivity
         raise DatasetDownloadError(f"Failed to download dataset from {url}: {exc}") from exc
