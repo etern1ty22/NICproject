@@ -1,0 +1,24 @@
+name: aco_main
+output_dir: output/aco_results
+objective_mode: hierarchical
+seed_set:
+  - 42
+evaluator:
+  name: default_evaluator
+solver:
+  name: aco_solver
+  params:
+    n_ants: 20
+    n_iterations: 100
+    alpha: 1.0
+    beta: 2.0
+    rho: 0.1
+    q_const: 100.0
+    
+    max_workers: 10
+    
+datasets:
+  - id: solomon_c101
+    path: data/downloads/c101.txt
+    format: solomon
+    role: tuning
