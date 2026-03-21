@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from nic_vrptw.core.contracts import SolverProtocol
 
+from .aco import AcoSolver
+from .greedy import GreedySolver
 from .reference import ReferenceSolver
-
-from .greedy import GreedyVRPTW
 
 _SOLVERS: dict[str, SolverProtocol] = {}
 
@@ -30,4 +30,6 @@ def list_solvers() -> tuple[str, ...]:
     return tuple(sorted(_SOLVERS))
 
 
+register_solver(AcoSolver())
+register_solver(GreedySolver())
 register_solver(ReferenceSolver())

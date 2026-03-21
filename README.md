@@ -14,6 +14,12 @@ python -m pip install -e .
 nic-vrptw run --config configs/smoke_e2e.yaml
 ```
 
+Greedy baseline is available via:
+
+```bash
+nic-vrptw run --config configs/greedy_baseline.yaml
+```
+
 3. Validate a fixture instance:
 
 ```bash
@@ -58,4 +64,4 @@ Official benchmark sources wired into the manifest:
 Integration notes:
 - New solvers should register through `src/nic_vrptw/solvers/__init__.py`.
 - New evaluators should register through `src/nic_vrptw/experiments/evaluators.py`.
-- The current `reference_solver` and `default_evaluator` exist only to keep the pipeline runnable until the team modules are plugged in.
+- `greedy_solver` and `aco_solver` are integrated project solvers; `reference_solver` remains a smoke-test fallback.

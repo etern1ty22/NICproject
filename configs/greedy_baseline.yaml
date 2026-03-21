@@ -1,0 +1,19 @@
+name: greedy_baseline
+output_dir: output/greedy_baseline
+objective_mode: hierarchical
+seed_set:
+  - 17
+evaluator:
+  name: default_evaluator
+solver:
+  name: greedy_solver
+  params: {}
+datasets:
+  - id: solomon_c101_mini
+    path: data/fixtures/solomon/C101-mini.txt
+    format: solomon
+    role: tuning
+  - id: ortec_mini
+    path: data/fixtures/ortec/ORTEC-mini.vrp
+    format: vrplib
+    role: holdout

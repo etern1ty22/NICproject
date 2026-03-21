@@ -6,6 +6,7 @@ import unittest
 
 import _bootstrap  # noqa: F401
 from nic_vrptw.experiments.runner import run_experiments
+from nic_vrptw.solvers import list_solvers
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -33,6 +34,21 @@ class RunnerTests(unittest.TestCase):
             metadata = json.loads(json_files[0].read_text(encoding="utf-8"))
             self.assertEqual(metadata["records_count"], 2)
             self.assertEqual(metadata["evaluator_id"], "default_evaluator")
+
+    def test_aco_solver_is_registered_and_runs_via_runner(self) -> None:
+        self.assertIn("aco_solver", list_solvers())
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            records = run_experiments(
+                ROOT / "configs/smoke_e2e.yaml",
+                solver_id="aco_solver",
+                output_dir=Path(tmpdir),
+                param_overrides={"n_ants": 1, "n_iterations": 1, "max_workers": 1},
+            )
+
+        self.assertEqual(len(records), 2)
+        self.assertTrue(all(record.solver_id == "aco_solver" for record in records))
+        self.assertTrue(all(record.feasible for record in records))
 
 
 if __name__ == "__main__":
