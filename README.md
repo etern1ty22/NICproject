@@ -1,3 +1,7 @@
+# NICproject — Vehicle Routing Problem with Time Windows (VRPTW) Experimental Framework
+
+**NICproject** is a modular, reproducible research framework for solving and evaluating the Vehicle Routing Problem with Time Windows (VRPTW). It provides a unified pipeline that loads benchmark instances from multiple formats (Solomon, Homberger, VRPLIB), applies configurable solvers (greedy baseline, Ant Colony Optimization with parallelization), and evaluates solutions against hierarchical objectives (feasibility first, then total distance). The project includes a CLI, data validation tools, experiment runners, and is designed to be easily extensible with new solvers or evaluators.
+
 ## Quick start
 
 1. Create a virtual environment and install the package:
