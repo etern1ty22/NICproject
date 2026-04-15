@@ -43,7 +43,13 @@ class RunnerTests(unittest.TestCase):
                 ROOT / "configs/smoke_e2e.yaml",
                 solver_id="aco_solver",
                 output_dir=Path(tmpdir),
-                param_overrides={"n_ants": 1, "n_iterations": 1, "max_workers": 1},
+                param_overrides={
+                    "n_ants": 1,
+                    "n_iterations": 1,
+                    "max_workers": 1,
+                    "local_search_operators": ("relocate", "swap", "two_opt"),
+                    "local_search_max_passes": 1,
+                },
             )
 
         self.assertEqual(len(records), 2)

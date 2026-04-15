@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import itertools
 import json
+import shutil
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -42,6 +43,7 @@ def run_experiments(
     config = RunConfig(
         name=config.name,
         output_dir=config.output_dir,
+        output_basename=config.output_basename,
         solver_id=config.solver_id,
         evaluator_id=config.evaluator_id,
         objective_mode=config.objective_mode,
@@ -137,6 +139,7 @@ def _load_run_config(
     return RunConfig(
         name=payload["name"],
         output_dir=(Path(output_dir) if output_dir is not None else (config_path.parent.parent / payload["output_dir"]).resolve()),
+        output_basename=payload.get("output_basename"),
         solver_id=solver_id or payload["solver"]["name"],
         evaluator_id=evaluator_id or payload.get("evaluator", {}).get("name", "default_evaluator"),
         objective_mode=payload.get("objective_mode", "hierarchical"),
@@ -175,8 +178,9 @@ def _ensure_solution_contract(solution: RouteSolution) -> None:
 
 
 def _write_outputs(config: RunConfig, config_id: str, records: list[RunRecord]) -> None:
-    csv_path = config.output_dir / f"{config.name}-{config_id[:12]}.csv"
-    json_path = config.output_dir / f"{config.name}-{config_id[:12]}.json"
+    artifact_paths = _resolve_output_paths(config, config_id)
+    csv_path = artifact_paths["csv"]
+    json_path = artifact_paths["json"]
 
     with csv_path.open("w", encoding="utf-8", newline="") as handle:
         fieldnames = list(records[0].to_row().keys()) if records else [
@@ -212,9 +216,28 @@ def _write_outputs(config: RunConfig, config_id: str, records: list[RunRecord]) 
         "objective_mode": config.objective_mode,
         "seed_set": list(config.seed_set),
         "records_count": len(records),
+        "output_basename": config.output_basename,
         "datasets": [make_json_safe(asdict(dataset)) for dataset in config.datasets],
         "solver_params": make_json_safe(config.solver_params),
         "sweeps": make_json_safe(config.sweeps),
         "metadata": make_json_safe(config.metadata),
     }
     json_path.write_text(json.dumps(metadata, indent=2, sort_keys=True), encoding="utf-8")
+
+    stable_csv_path = artifact_paths.get("stable_csv")
+    stable_json_path = artifact_paths.get("stable_json")
+    if stable_csv_path is not None:
+        shutil.copyfile(csv_path, stable_csv_path)
+    if stable_json_path is not None:
+        shutil.copyfile(json_path, stable_json_path)
+
+
+def _resolve_output_paths(config: RunConfig, config_id: str) -> dict[str, Path]:
+    paths: dict[str, Path] = {
+        "csv": config.output_dir / f"{config.name}-{config_id[:12]}.csv",
+        "json": config.output_dir / f"{config.name}-{config_id[:12]}.json",
+    }
+    if config.output_basename:
+        paths["stable_csv"] = config.output_dir / f"{config.output_basename}.csv"
+        paths["stable_json"] = config.output_dir / f"{config.output_basename}.json"
+    return paths

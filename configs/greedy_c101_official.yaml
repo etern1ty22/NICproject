@@ -1,0 +1,21 @@
+name: greedy_c101_official
+output_dir: output/greedy/c101_official
+output_basename: greedy_official_c101
+objective_mode: hierarchical
+seed_set:
+  - 17
+evaluator:
+  name: default_evaluator
+solver:
+  name: greedy_solver
+  params: {}
+datasets:
+  - id: solomon_c101_official
+    path: data/downloads/c101.txt
+    format: solomon
+    role: baseline
+metadata:
+  benchmark_manifest: data/manifests/benchmarks.yaml
+  benchmark_dataset: solomon_c101_official
+  expected_download_path: data/downloads/c101.txt
+  purpose: final_baseline_comparison

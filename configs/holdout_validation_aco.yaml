@@ -1,0 +1,33 @@
+name: holdout_validation_aco
+output_dir: output/holdout_validation_aco
+output_basename: holdout_aco
+objective_mode: hierarchical
+seed_set:
+  - 13
+evaluator:
+  name: default_evaluator
+solver:
+  name: aco_solver
+  params:
+    n_ants: 10
+    n_iterations: 30
+    alpha: 1.0
+    beta: 2.0
+    rho: 0.1
+    q_const: 100.0
+    vehicle_penalty: 10.0
+    enable_local_search: true
+    local_search_operators:
+      - relocate
+      - swap
+      - two_opt
+    local_search_max_passes: 1
+    max_workers: 1
+datasets:
+  - id: ortec_mini
+    path: data/fixtures/ortec/ORTEC-mini.vrp
+    format: vrplib
+    role: holdout
+metadata:
+  scope: auxiliary_holdout_sanity_check
+  reporting_note: not_primary_final_benchmark_claim

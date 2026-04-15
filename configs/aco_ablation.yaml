@@ -1,0 +1,43 @@
+name: aco_ablation_local_search_c101
+output_dir: output/aco/ablation_local_search_c101
+output_basename: ablation
+objective_mode: hierarchical
+seed_set:
+  - 7
+  - 11
+  - 19
+evaluator:
+  name: default_evaluator
+solver:
+  name: aco_solver
+  params:
+    n_ants: 20
+    n_iterations: 60
+    alpha: 1.0
+    beta: 2.0
+    rho: 0.1
+    q_const: 100.0
+    vehicle_penalty: 10.0
+    enable_local_search: true
+    local_search_scope: iteration_best
+    local_search_operators:
+      - relocate
+      - swap
+      - two_opt
+    local_search_max_passes: 1
+    max_workers: 1
+datasets:
+  - id: solomon_c101_official
+    path: data/downloads/c101.txt
+    format: solomon
+    role: ablation
+sweeps:
+  local_search_operators:
+    - []
+    - [two_opt]
+    - [relocate, swap, two_opt]
+metadata:
+  benchmark_manifest: data/manifests/benchmarks.yaml
+  benchmark_dataset: solomon_c101_official
+  expected_download_path: data/downloads/c101.txt
+  study: local_search_ablation

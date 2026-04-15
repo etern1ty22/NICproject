@@ -20,8 +20,8 @@ class SolverProtocol(Protocol):
 
 
 class EvaluatorProtocol(Protocol):
-    # This contract exists so the current scoring shim can later be replaced
-    # by the dedicated evaluator module without changing solver integrations.
+    # Evaluators stay behind a small protocol so scoring rules can evolve
+    # without changing solver integrations or experiment wiring.
     def evaluate(
         self,
         instance: VRPTWInstance,
