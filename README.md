@@ -1,30 +1,55 @@
-# Hybrid Ant Colony Optimization for VRPTW
+# Hybrid ACO Solver for VRPTW
 
-This repository contains the Innopolis University Nature Inspired Computing project on the Vehicle Routing Problem with Time Windows (VRPTW). The codebase implements reproducible instance loaders, benchmark download helpers, a greedy baseline, and a hybrid Ant Colony Optimization (ACO) solver with local search operators (`two_opt`, `relocate`, `swap`). The final reported experiment scope in this repository is centered on the official Solomon `C101` benchmark, while committed mini fixtures and the ORTEC mini holdout remain supporting assets for smoke tests, demo validation, and auxiliary sanity checks rather than the primary final claim.
+Research and optimization project for the Vehicle Routing Problem with Time Windows (VRPTW). The codebase implements reproducible data loaders, benchmark download helpers, a greedy baseline, and a hybrid Ant Colony Optimization (ACO) solver with local search operators (`two_opt`, `relocate`, `swap`).
+
+The final reported experiment scope is centered on the official Solomon `C101` benchmark. Committed mini fixtures and the ORTEC mini holdout support smoke tests, demo validation, and auxiliary sanity checks.
+
+## Portfolio focus
+
+- End-to-end Python package with CLI entry point: `nic-vrptw`.
+- Reproducible experiment runner driven by YAML configs.
+- Greedy baseline and ACO solver behind a common solver contract.
+- Local-search ablation and parameter sweep scripts.
+- Dataset manifest/download layer with checksum validation.
+- Unit, reproducibility, loader, evaluator, and smoke-test coverage.
+
+## Tech stack
+
+- Python 3.12+
+- NumPy
+- PyYAML
+- Optional: pandas, matplotlib, vrplib
+- unittest/pytest-compatible test suite
 
 ## Quick start
-
-1. Create a virtual environment and install the package:
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install -e .
+python -m pip install -e ".[dev,analysis]"
 ```
 
-2. Run the smoke experiment after installation:
+Run a smoke experiment:
 
 ```bash
 nic-vrptw run --config configs/smoke_e2e.yaml
 ```
 
-Greedy baseline is available via:
+Run the greedy baseline:
 
 ```bash
 nic-vrptw run --config configs/greedy_baseline.yaml
 ```
 
-Final Solomon `C101` baseline and ACO runs are available via:
+Run tests:
+
+```bash
+python3 -m unittest discover -s tests
+```
+
+If you need to run modules without installing the package first, prefix commands with `PYTHONPATH=src`.
+
+## Final experiment commands
 
 ```bash
 nic-vrptw run --config configs/greedy_c101_official.yaml
@@ -34,34 +59,13 @@ nic-vrptw run --config configs/aco_ablation.yaml
 python3 scripts/generate_final_analysis.py
 ```
 
-3. Validate a fixture instance:
+Or run the full suite:
 
 ```bash
-nic-vrptw validate-instance --path data/fixtures/solomon/C101-mini.txt
+bash scripts/run_final_suite.sh
 ```
 
-4. Run tests from the repository root:
-
-```bash
-python3 -m unittest discover -s tests
-```
-
-If you need to run modules without installing the package first, prefix commands with `PYTHONPATH=src`.
-
-5. Download portable benchmark data examples:
-
-```bash
-nic-vrptw download --manifest data/manifests/fixtures.yaml --dataset solomon_c101_mini --output-dir data/downloads
-nic-vrptw download --manifest data/manifests/benchmarks.yaml --dataset solomon_c101_official --output-dir data/downloads
-```
-
-## Layout
-
-- `src/nic_vrptw/`: the only project package with application code.
-- `configs/`: experiment definitions.
-- `data/fixtures/`: tiny committed fixtures for both supported formats.
-- `data/manifests/`: portable fixture manifest plus official benchmark download manifest.
-- `tests/`: unit, reproducibility, and smoke tests.
+Generated final artifacts are expected under `output/analysis/final/`.
 
 ## Supported datasets
 
@@ -70,20 +74,32 @@ nic-vrptw download --manifest data/manifests/benchmarks.yaml --dataset solomon_c
 
 The full benchmark files are intentionally not committed. The repository ships a download utility with checksum validation and small local fixtures for testing.
 
-Final reporting scope:
+Download examples:
+
+```bash
+nic-vrptw download --manifest data/manifests/fixtures.yaml --dataset solomon_c101_mini --output-dir data/downloads
+nic-vrptw download --manifest data/manifests/benchmarks.yaml --dataset solomon_c101_official --output-dir data/downloads
+```
+
+## Project structure
+
+```text
+src/nic_vrptw/              package source
+src/nic_vrptw/solvers/      greedy, ACO, local search, reference solver
+src/nic_vrptw/data/         loaders, validation, downloads, parsers
+src/nic_vrptw/experiments/  runner, evaluators, analysis
+configs/                    experiment definitions
+data/fixtures/              tiny committed fixtures
+data/manifests/             portable benchmark manifests
+scripts/                    final/demo automation
+tests/                      unit, smoke, and reproducibility tests
+```
+
+## Report scope
+
 - Primary final benchmark: `solomon_c101_official`.
 - Demo path: `configs/aco_demo.yaml` via `scripts/run_aco_demo.sh`.
-- Auxiliary holdout validation: mini fixtures and ORTEC mini.
+- Auxiliary validation: mini fixtures and ORTEC mini.
 - Homberger download support exists in the manifest, but Homberger scalability is not presented as a completed final experiment in this repository.
 
-Official benchmark sources wired into the manifest:
-- Solomon 100-customer benchmark from SINTEF TOP.
-- Homberger 200-customer benchmark from SINTEF TOP.
-- ORTEC VRPTW instance from the EURO Meets NeurIPS 2022 quickstart repository.
-
-Integration notes:
-- New solvers should register through `src/nic_vrptw/solvers/__init__.py`.
-- New evaluators should register through `src/nic_vrptw/experiments/evaluators.py`.
-- `greedy_solver` and `aco_solver` are integrated project solvers; `reference_solver` remains a smoke-test fallback.
-
-Final submission notes and cited experiment numbers should be kept in `docs/FINAL_SUBMISSION_NOTES.md`.
+Detailed final-submission notes live in `docs/FINAL_SUBMISSION_NOTES.md`.
